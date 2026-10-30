@@ -1,0 +1,117 @@
+{
+  "channel": "linux_do_channel",
+  "poll_interval_sec": 60,
+  "fetch": {
+    "page_gap_sec": 1.0,
+    "retries": 3,
+    "timeout_sec": 25
+  },
+  "llm": {
+    "base_url": "http://127.0.0.1:3425/v1",
+    "model": "agentscope/deepseek-v4.1-flash-1017",
+    "concurrency": 4,
+    "timeout_sec": 60,
+    "max_chars": 1500,
+    "prompt_version": "v3",
+    "temperature": 0,
+    "max_per_cycle": 15
+  },
+  "thresholds": {
+    "push": 0.55,
+    "digest": 0.35
+  },
+  "digest_hour": 21,
+  "rules": {
+    "min_prescore_for_llm": -1,
+    "simhash_distance": 3
+  },
+  "examples": [
+    {
+      "label": "share_project",
+      "score": 0.92,
+      "topic": "「可能是近期最后一次尝鲜版了」L站原生安卓客户端 v1.5.0 全程直连版放出",
+      "why": "作者自荐开源项目，附 GitHub 仓库与下载地址"
+    },
+    {
+      "label": "share_project",
+      "score": 0.88,
+      "topic": "[更新]sub2api-xray原仓库恢复，新增功能-重试过滤器",
+      "why": "开源项目更新通告，附仓库地址和功能说明"
+    },
+    {
+      "label": "share_resource",
+      "score": 0.86,
+      "topic": "白嫖 Muse 主机搭建博客站，0 成本建站",
+      "why": "可复现的免费建站方案，附完整步骤和成品地址"
+    },
+    {
+      "label": "share_resource",
+      "score": 0.82,
+      "topic": "Pro / Team 领取OpenAI 官方 API 额度的解决方法",
+      "why": "给出可操作的具体步骤，解决实际领取问题"
+    },
+    {
+      "label": "question",
+      "score": 0.18,
+      "topic": "CC 的缓存读扣不扣订阅额度？",
+      "why": "求证讨论，只有疑问，没有可获取的资源或方案"
+    },
+    {
+      "label": "question",
+      "score": 0.15,
+      "topic": "求推荐能支持 claude 的卡台",
+      "why": "求推荐，未给出任何具体方案或链接"
+    },
+    {
+      "label": "promo",
+      "score": 0.2,
+      "topic": "【LV中转】快乐周五了，双福利还在继续，免费送额度",
+      "why": "自家中转站的促销软文，本质是引流，不是分享"
+    },
+    {
+      "label": "news",
+      "score": 0.28,
+      "topic": "Anthropic 将 Claude API 请求上限提高至 128 MB",
+      "why": "行业新闻播报，无可获取的资源"
+    },
+    {
+      "label": "chat",
+      "score": 0.1,
+      "topic": "搞不懂我同事这是什么心态",
+      "why": "情绪吐槽，无信息量"
+    },
+    {
+      "label": "service_update",
+      "score": 0.72,
+      "topic": "workbuddy国际版deepseek flash4.1现在免费额度开始限制了每小时的使用量了",
+      "why": "具体服务的额度规则变更，直接影响用户还能用多少"
+    },
+    {
+      "label": "service_update",
+      "score": 0.68,
+      "topic": "claude pro实际可用额度",
+      "why": "实测某订阅的真实额度，帮助用户判断值不值得续费"
+    },
+    {
+      "label": "service_update",
+      "score": 0.65,
+      "topic": "某中转站开始对高并发请求限速",
+      "why": "服务方规则收紧，用户需要知道以便调整用法"
+    },
+    {
+      "label": "news",
+      "score": 0.25,
+      "topic": "Anthropic 将 Claude API 请求上限提高至 128 MB",
+      "why": "行业新闻播报，与用户实际使用无关"
+    }
+  ],
+  "classifier": "jev",
+  "jev": {
+    "base_url": "https://api.typesafe.ai/v1",
+    "model": "jev-latest",
+    "timeout_sec": 30,
+    "min_confidence": 0.55,
+    "cap_confidence": 0.55,
+    "concurrency": 6
+  }
+}

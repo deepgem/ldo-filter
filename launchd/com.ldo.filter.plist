@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  安装：
+    cp launchd/com.ldo.filter.plist ~/Library/LaunchAgents/
+    launchctl load -w ~/Library/LaunchAgents/com.ldo.filter.plist
+  查看：
+    launchctl list | grep ldo
+    tail -f logs/run.log
+  卸载：
+    launchctl unload -w ~/Library/LaunchAgents/com.ldo.filter.plist
+  注意：把下方两处 /Users/liszt/Documents/deepseek-harness/default-workspace/ldo-filter 换成你的实际绝对路径。
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ldo.filter</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/python3</string>
+    <string>-m</string>
+    <string>ldo</string>
+    <string>run</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/liszt/Documents/deepseek-harness/default-workspace/ldo-filter</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/liszt/Documents/deepseek-harness/default-workspace/ldo-filter/logs/run.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/liszt/Documents/deepseek-harness/default-workspace/ldo-filter/logs/run.err.log</string>
+</dict>
+</plist>
