@@ -27,11 +27,13 @@ def _esc(s: str) -> str:
     return htmllib.escape(s or "", quote=False)
 
 
-def tg_call(cfg: dict, method: str, payload: dict, timeout: float = 20) -> dict:
+def tg_call(cfg: dict, method: str, payload: dict, timeout: float = 20, retries: int = 2) -> dict:
     token = cfg["telegram"]["bot_token"]
     if not token:
         raise RuntimeError("TG_BOT_TOKEN 未配置")
-    return net.http_post_json(TG_API.format(token=token, method=method), payload, timeout=timeout, retries=2)
+    return net.http_post_json(
+        TG_API.format(token=token, method=method), payload, timeout=timeout, retries=retries
+    )
 
 
 def discover_chat_id(cfg: dict) -> str | None:
@@ -61,6 +63,7 @@ def send_message(cfg: dict, text: str, chat_id: str | None = None) -> bool:
                 "disable_web_page_preview": True,
                 "link_preview_options": {"is_disabled": True},
             },
+            retries=1,  # sendMessage 非幂等：重发会产生重复消息
         )
         return True
     except Exception as e:  # noqa: BLE001
