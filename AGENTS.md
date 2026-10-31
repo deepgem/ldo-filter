@@ -152,6 +152,21 @@ state    (key, value)  -- last_seen_id / backfill_cursor / last_digest_date
 
 ---
 
+## 7.5 推送语义（重要）
+
+`send_message` 返回值决定 `push_new` 是否写 `pushes` 表，这里刻意选择了**宁可漏发也不重复**：
+
+| 情况 | 返回 | 是否 mark | 理由 |
+|---|---|---|---|
+| 成功 | `True` | 是 | 正常 |
+| Telegram 4xx（chat 不存在、token 失效） | `True` | 是 | 永久失败，重试只会死循环 |
+| 5xx / 429 | `False` | 否 | 临时故障，下一轮 tick 重试 |
+| 网络异常（断连、超时） | `True` | 是 | **无法确定是否送达**。Telegram 可能已发出，重推就是重复 |
+
+最后一行是踩过两次坑才定下来的：第一次是 `retries=2` 导致 2 秒内推两遍，第二次是网络异常返回 `False` 导致 60 秒后再推一遍。
+
+**不要"改进"成"失败了就重试"** —— `sendMessage` 没有幂等键，重试必然产生重复消息。
+
 ## 8. 常用调试命令
 
 ```bash
@@ -199,7 +214,9 @@ python3 -m ldo flush               # 静默积压，防止启动刷屏
 | `rejudge --reset` 不加 `--limit` | 全量重判，可能触发一批意外推送 |
 | 只测「该推的推了」 | 还要测「不该推的没推」——误推比漏推更烦人 |
 | 改 `BOILERPLATE` 时手滑 | 每条消息都带的 `t.me/<作者>` 链接会被当成分享信号，闲聊全部虚高 |
-| 给 `sendMessage` 开自动重试 | 同一消息推两遍 —— Telegram 已处理但响应断连，客户端误判失败后重发。**已修：`retries=1`** |
+| `sendMessage` 自动重试 | 同一消息推两遍（间隔 1~2s）—— Telegram 已处理但响应断连，客户端误判失败后重发。**已修：`retries=1`** |
+| 网络异常按「发送失败」处理 | 同一消息推两遍（间隔 60s）—— 第一轮实际送达但没 `mark_pushed`，下一轮重推。**已修：`PostError.original` 是网络异常时按已送达处理** |
+| 日志里打印完整 URL | bot token 明文进 `run.log`。**已修：`net.redact()` 把 `/bot<token>/` 替换为 `/bot<TOKEN>/`** |
 
 ---
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import gzip
 import http.client
 import json
+import re
 import random
 import socket
 import time
@@ -14,6 +15,22 @@ UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
+
+
+_TOKEN_RE = re.compile(r"/bot[^/\s]+/")
+
+
+def redact(url: str) -> str:
+    """把 URL 里的 bot token 替换掉，避免写进日志。"""
+    return _TOKEN_RE.sub("/bot<TOKEN>/", url)
+
+
+class PostError(RuntimeError):
+    """POST 重试耗尽后抛出，保留原始异常类型以便调用方区分处理。"""
+
+    def __init__(self, url: str, original: BaseException):
+        super().__init__(f"POST failed: {redact(url)} :: {original}")
+        self.original = original
 
 
 class HttpError(Exception):
@@ -65,7 +82,7 @@ def http_get(
         except (urllib.error.URLError, http.client.HTTPException, socket.timeout, TimeoutError) as e:
             last = e
             time.sleep(2 ** attempt + random.random())
-    raise RuntimeError(f"GET failed after {retries}: {url} :: {last}")
+    raise RuntimeError(f"GET failed after {retries}: {redact(url)} :: {last}")
 
 
 def http_post_json(
@@ -96,4 +113,4 @@ def http_post_json(
         except (urllib.error.URLError, http.client.HTTPException, socket.timeout, TimeoutError, json.JSONDecodeError) as e:
             last = e
             time.sleep(2 ** attempt + random.random())
-    raise RuntimeError(f"POST failed after {retries}: {url} :: {last}")
+    raise PostError(url, last if last else RuntimeError("unknown"))

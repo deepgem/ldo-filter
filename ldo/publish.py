@@ -6,7 +6,14 @@ import json
 import re
 from datetime import datetime, timedelta, timezone
 
+import http.client
+import socket
+import urllib.error
+
 from . import db, net
+
+# 这些异常下消息可能已经送达，只是响应丢了
+NETWORK_ERRORS = (urllib.error.URLError, http.client.HTTPException, socket.timeout, TimeoutError)
 from .config import LOG_DIR
 
 TG_API = "https://api.telegram.org/bot{token}/{method}"
@@ -66,6 +73,24 @@ def send_message(cfg: dict, text: str, chat_id: str | None = None) -> bool:
             retries=1,  # sendMessage 非幂等：重发会产生重复消息
         )
         return True
+    except net.HttpError as e:
+        # 4xx 是永久失败（chat 不存在、token 失效等），重试无意义，标记为已处理避免死循环
+        if e.status != 429 and e.status < 500:
+            print(f"[push] ❌ 被 Telegram 拒绝 {e.status}，本条放弃：{e.body[:120]}")
+            return True
+        print(f"[push] 服务端 {e.status}，下轮重试")
+        return False
+    except net.PostError as e:
+        # 网络层异常时无法确定消息是否已送达：
+        # Telegram 可能已经发出，只是响应读取失败。按「已发送」处理，宁可漏一条也不重复推。
+        if isinstance(e.original, NETWORK_ERRORS):
+            print(
+                f"[push] ⚠️ 网络异常，无法确认是否送达，按已发送处理以避免重复 "
+                f"({type(e.original).__name__})"
+            )
+            return True
+        print(f"[push] FAIL: {e}")
+        return False
     except Exception as e:  # noqa: BLE001
         print(f"[push] FAIL: {e}")
         return False
