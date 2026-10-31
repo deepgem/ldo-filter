@@ -135,6 +135,17 @@ if _is_promo(msg):             # 标题含「富可敌国」或正文含拉新�
 
 **新增社区黑话**（`机场`、`中转站` 之类）要手动加进 `LURE_PHRASES`，Jev 理解不了这些词的感情色彩。
 
+### 6.1 `state` 里必须带发布者
+
+`build_state()` 会拼上 `发布者：@username`。这不是装饰 —— **Jev 靠它区分「谁在分享」**：
+
+- 用户转发第三方公司的免费活动（Kiro 报名领积分）→ `share_resource`
+- 商家自己发自家优惠（【富可敌国】XX中转站送额度）→ `promo`
+
+去掉 `author` 后，Jev 只能看文本，会把两类混为一谈。实测过：`Kiro白嫖4000积分` 在带 author 后从 `promo 0.54` 变成 `share_resource 0.83`。
+
+改 `build_state` 的字段等于改变所有判定，**必须同时升 `prompt_version`**。
+
 ---
 
 ## 7. 数据库

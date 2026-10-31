@@ -12,7 +12,7 @@
     "concurrency": 4,
     "timeout_sec": 60,
     "max_chars": 1500,
-    "prompt_version": "v3",
+    "prompt_version": "v4",
     "temperature": 0,
     "max_per_cycle": 15
   },
